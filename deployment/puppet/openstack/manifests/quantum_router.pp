@@ -74,7 +74,7 @@ class openstack::quantum_router (
       }
       class { 'quantum::agents::dhcp':
         debug            => True,
-        use_namespaces   => False,
+        use_namespaces   => $use_namespaces,
         service_provider => $service_provider,
         auth_url         => $admin_auth_url,
         auth_tenant      => 'services',
@@ -94,7 +94,7 @@ class openstack::quantum_router (
         auth_tenant         => 'services',
         auth_user           => 'quantum',
         auth_password       => $quantum_user_password,
-        use_namespaces      => False,
+        use_namespaces      => $use_namespaces,
         metadata_ip         => $internal_address,
         service_provider    => $service_provider
       }
