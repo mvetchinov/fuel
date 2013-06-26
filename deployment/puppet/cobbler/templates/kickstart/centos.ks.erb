@@ -69,6 +69,17 @@ $SNIPPET('network_config')
 # INSTALLATION PROCESS ITSELF
 %pre
 
+# Disable CentOS Base repos
+cat > /tmp/sed.txt <<EOF
+/gpgcheck/ {
+    n
+    /enabled/! {
+        i\enabled=0
+    }
+}
+EOF
+sed -i -f /tmp/sed.txt /etc/yum.repos.d/CentOS-Base.repo
+
 # COBBLER EMBEDDED SNIPPET: 'log_ks_pre'
 # CONFIGURES %pre LOGGING
 $SNIPPET('log_ks_pre')
