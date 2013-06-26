@@ -45,7 +45,7 @@ node fuel-cobbler {
 
     class { cobbler::distro::centos64_x86_64:
       http_iso => "http://download.mirantis.com/epel-fuel-folsom-2.1/CentOS-6.4-x86_64-minimal.iso",
-      ks_url   => "http://download.mirantis.com/centos-6.4",
+      ks_url   => "http://download.mirantis.com/epel-fuel-grizzly-current",
     }
 
 
@@ -60,7 +60,7 @@ node fuel-cobbler {
         },
         {
         "name" => "mirantis-centos-repo",
-        "url"  => "http://download.mirantis.com/centos-6.4",
+        "url"  => "http://download.mirantis.com/centos-epel-grizzly-current",
         }
       ]
     }
