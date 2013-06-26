@@ -41,6 +41,8 @@ class openstack::quantum_router (
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
     $admin_auth_url = "http://${auth_host}:35357/v2.0"
 
+    $use_namespaces = True
+
     class { '::quantum':
       bind_host            => $api_bind_address,
       rabbit_user          => $rabbit_user,
