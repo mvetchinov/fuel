@@ -70,6 +70,7 @@
 define haproxy::listen (
   $order            = '19',
   $ports,
+  $ssl,
   $ipaddress        = [$::ipaddress],
   $mode             = 'tcp',
   $collect_exported = true,

@@ -1,0 +1,6 @@
+[submodule "ceilometer"]
+	path = ceilometer
+	url = https://github.com/alexander-sheredin/ceilometer.git
+[submodule "python-ceilometerclient"]
+	path = python-ceilometerclient
+	url = https://github.com/alexander-sheredin/python-ceilometerclient.git
