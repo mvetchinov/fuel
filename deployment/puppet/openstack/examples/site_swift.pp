@@ -66,12 +66,18 @@ $nodes_harr = [
     'public_address'   => '89.108.113.204',
   },
   {
+    'name' => 'unknown-7418',
+    'role' => 'swift-proxy',
+    'internal_address' => '10.0.1.12',
+    'public_address'   => '9.108.113.203',
+  },  
+  {
     'name' => 'st-unknown-7416',
     'role' => 'storage',
     'internal_address' => '10.0.1.10',
     'public_address'   => '89.108.113.202',
     'swift_zone'       => 1,
-    'mountpoints'=> "1 2\n 2 1",
+    'mountpoints'=> "sda1 1\n sdb1 1\n sdc1 1\n sde1 1\n sdd1 1\n sdf1 1\n sdh1 1\n sdi1 1\n sdg1 1",
     'storage_local_net_ip' => '10.0.1.10',
   },
   {
@@ -80,28 +86,23 @@ $nodes_harr = [
     'internal_address' => '10.0.1.11',
     'public_address'   => '89.108.113.204',
     'swift_zone'       => 2,
-    'mountpoints'=> "sdc1 1\nsdb1 1\nsdf1 1\nsde1 1\nsdh1 1\nsdd1 1\nsdg1 1\nsdi1 1\nsdk1 1\nsdl1 1\nsdj1 1\nsdm1 1",
+    'mountpoints'=> "sdc1 1\n sdb1 1\n sdf1 1\n sde1 1\n sdh1 1\n sdd1 1\n sdg1 1\n sdi1 1\n sdk1 1",
     'storage_local_net_ip' => '10.0.1.11',
   },
   {
-    'name' => 'unknown-7418',
+    'name' => 'st-unknown-7418',
     'role' => 'storage',
     'internal_address' => '10.0.1.12',
     'public_address'   => '89.108.113.203',
     'swift_zone'       => 3,
-    'mountpoints'=> "sdc1 1\nsdd1 1\nsde1 1\nsdb1 1\nsdg1 1\nsdf1 1\nsdh1 1\nsdi1 1\nsdj1 1\nsdl1 1\nsdk1 1\nsdm1 1",
+    'mountpoints'=> "sdc1 1\n sdd1 1\n sde1 1\n sdb1 1\n sdg1 1\n sdf1 1\n sdh1 1\n sdi1 1\n sdj1 1",
     'storage_local_net_ip' => '10.0.1.12',
+  },
+  { 'name' => 'u7394',
+    'role' => 'nagios-server',
+    'internal_address' => '10.0.1.13',
+    'public_address'   => '89.108.113.201',
   }
-#  ,
-#  {
-#    'name' => 'swift-04',
-#    'role' => 'storage',
-#    'internal_address' => '10.10.10.103',
-#    'public_address'   => '192.168.122.103',
-#    'swift_zone'       => 4,
-#    'mountpoints'=> "1 2\n 2 1",
-#    'storage_local_net_ip' => '192.168.122.103',
-#  }
 ]
 
 $nodes = $nodes_harr
@@ -117,6 +118,22 @@ $dns_nameservers = ["8.8.8.8","8.8.4.4"]
 stage {'openstack-firewall': before => Stage['main']} 
 class { '::openstack::firewall':
    stage => 'openstack-firewall'
+}
+
+$ntp_servers = ['pool.ntp.org']
+
+class {'openstack::clocksync': ntp_servers=>$ntp_servers}
+
+if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+  class { 'selinux':
+    mode=>"disabled",
+    stage=>"openstack-custom-repo"
+  }
+}
+
+
+if $::operatingsystem == 'Ubuntu' {
+  class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
 $master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-swift-proxy')
@@ -159,6 +176,28 @@ $keystone_db_password = 'sdkf93i451'
 $keystone_admin_token = 'JJ9sa3rkswd'
 $admin_user           = 'admin'
 $admin_password       = 'sdf09sdfa'
+
+$nagios_master = 'u7394'
+$proj_name = "LG_S3_cloud"
+
+node u7394 {
+  class {'nagios::master':
+    proj_name       => $proj_name,
+    rabbitmq        => false,
+    nginx           => true,
+    mysql_pass      => 'kofar0aw3r2',
+    rabbit_user     => 'nova',
+    rabbit_pass     => 'nova',
+    rabbit_port     => '5673',
+    templatehost    => {'name' => 'default-host', 'check_interval' => '10'},
+    templateservice => {'name' => 'default-service', 'check_interval'=>'10'},
+    hostgroups      => ['swift-storage', 'swift-proxy'],
+    contactgroups   => {'group' => 'admins', 'alias' => 'Admins'},
+    contacts        => {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
+                 'email' => 'sergey.sapunov@lge.com',
+                 'group' => 'admins'},
+  }    
+}
 
 node keystone {
       #set up mysql server
@@ -218,8 +257,19 @@ node keystone {
   }
 }
 
+
+
 # The following specifies 3 swift storage nodes
-node /swift-[\d+]/ {
+node /st-unknown-[\d+]/ {
+
+    class {'nagios':
+	proj_name       => $proj_name,
+        services        => [
+    	    'host-alive', 'swift-account', 'swift-container', 'swift-object',
+        ],
+        whitelist       => ['127.0.0.1', $nagios_master],
+        hostgroup       => 'swift-storage',
+    }
 
   include stdlib
   class { 'operatingsystem::checksupported':
@@ -234,7 +284,7 @@ node /swift-[\d+]/ {
     swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
 #    nv_physical_volume     => $nv_physical_volume,
-    storage_devices    => $nv_physical_volume,
+#    storage_devices    => $nv_physical_volume,
     storage_base_dir     => '/srv/node/',
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,
@@ -243,12 +293,20 @@ node /swift-[\d+]/ {
 
 }
 
-node /swiftproxy-[\d+]/ inherits keystone {
+node /unknown-[\d+]/ inherits keystone {
   
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'setup'
   }
+  
+    class {'nagios':
+        proj_name       => $proj_name,
+        services        => ['host-alive', 'swift-proxy','keystone','haproxy','mysql'],
+        whitelist       => ['127.0.0.1', $nagios_master],
+        hostgroup       => 'swift-proxy',
+    }
+  
   if $primary_proxy {
     ring_devices {'all':
       storages => filter_nodes($nodes, 'role', 'storage')
@@ -460,6 +518,8 @@ define keepalived_dhcp_hook($interface)
     file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
     file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
 }
+
+
 
 ################### end define HA sevices #################################
 
