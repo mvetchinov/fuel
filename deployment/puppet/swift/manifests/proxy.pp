@@ -46,6 +46,7 @@ class swift::proxy(
   $allow_account_management = true,
   $account_autocreate = true,
   $package_ensure = 'present'
+  $conn_timeout   = "0.5"
 ) {
 
   include 'swift::params'

@@ -36,7 +36,14 @@ class openstack::swift::storage_node (
   $rabbit_password        = 'rabbit_pw',
   $rabbit_host            = false,
   $rabbit_user            = 'nova',
-  $rabbit_ha_virtual_ip   = false,) {
+  $rabbit_ha_virtual_ip   = false,
+  $workers                = $::processorcount,
+  $replicator_concurrency = $::processorcount,
+  $updater_concurrency = $::processorcount,
+  $reaper_concurrency = $::processorcount,
+  $run_pause = "30",
+      
+  ) {
   if !defined(Class['swift']) {
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
@@ -58,6 +65,11 @@ class openstack::swift::storage_node (
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
     swift_zone           => $swift_zone,
+    workers		 => $workers,
+    run_pause		 => $run_pause,
+    replicator_concurrency => $replicator_concurrency,
+    updater_concurrency  => $updater_concurrency,
+    reaper_concurrency   => $reaper_concurrency,
   }
 
   validate_string($master_swift_proxy_ip)

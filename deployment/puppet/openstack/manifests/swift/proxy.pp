@@ -36,6 +36,7 @@ class openstack::swift::proxy (
   $master_swift_proxy_ip    = undef,
   $collect_exported         = false,
   $rings                    = ['account', 'object', 'container'],
+  $conn_timeout		    = "0.5",
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -56,6 +57,7 @@ class openstack::swift::proxy (
     allow_account_management => $proxy_allow_account_management,
     account_autocreate       => $proxy_account_autocreate,
     package_ensure           => $package_ensure,
+    conn_timeout	     => $conn_timeout,
   }
 
   # configure all of the middlewares

@@ -26,6 +26,11 @@ class swift::storage::all(
   $container_pipeline = undef,
   $account_pipeline   = undef,
   $export_devices     = false,
+  $workers	      =  $::processorcount,
+  $replicator_concurrency = $::processorcount,
+  $updater_concurrency = $::processorcount,
+  $reaper_concurrency = $::processorcount,
+  $run_pause	      = "30",
 ) {
 
   class { 'swift::storage':
@@ -52,17 +57,30 @@ class swift::storage::all(
     type             => 'account',
     config_file_path => 'account-server.conf',
     pipeline         => $account_pipeline,
+    $workers         => $workers,
+    replicator_concurrency => $replicator_concurrency,
+    updater_concurrency    => $updater_concurrency,
+    reaper_concurrency     => $reaper_concurrency,
   }
 
   swift::storage::server { $container_port:
     type             => 'container',
     config_file_path => 'container-server.conf',
     pipeline         => $container_pipeline,
+    $workers         => $workers,
+    replicator_concurrency => $replicator_concurrency,
+    updater_concurrency    => $updater_concurrency,
+    reaper_concurrency     => $reaper_concurrency,
   }
 
   swift::storage::server { $object_port:
     type             => 'object',
     config_file_path => 'object-server.conf',
     pipeline         => $object_pipeline,
+    $workers         => $workers,
+    replicator_concurrency => $replicator_concurrency,
+    updater_concurrency    => $updater_concurrency,
+    reaper_concurrency     => $reaper_concurrency,
+    run_pause		   => $run_pause,
   }
 }

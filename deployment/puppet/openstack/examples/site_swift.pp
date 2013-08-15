@@ -290,6 +290,11 @@ node /st-unknown-[\d+]/ {
     service_endpoint       => $internal_virtual_ip,
     cinder       => false,
     workers      => "10",
+    replicator_concurrency => "1",
+    updater_concurrency => "1",
+    reaper_concurrency => "1"
+    run_pause => "3600",
+       
   }
 
 }
@@ -321,6 +326,7 @@ node /unknown-[\d+]/ inherits keystone {
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
+    conn_timeout	    => "2",
   }
   
   
