@@ -288,7 +288,8 @@ node /st-unknown-[\d+]/ {
     storage_base_dir     => '/srv/node/',
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,
-    cinder       => false
+    cinder       => false,
+    workers      => "10",
   }
 
 }
@@ -386,6 +387,19 @@ node /unknown-[\d+]/ inherits keystone {
       }
 #    }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
+    sysctl::value { 'net.netfilter.nf_conntrack_max': value => '1548576' }
+    sysctl::value { 'net.netfilter.nf_conntrack_tcp_timeout_fin_wait': value => '5' }
+    sysctl::value { 'net.netfilter.nf_conntrack_tcp_timeout_close_wait':  value => '5' }
+    sysctl::value { 'net.netfilter.nf_conntrack_tcp_timeout_time_wait':  value => '5' }
+    sysctl::value { 'net.core.rmem_max':  value => '16777216' }
+    sysctl::value { 'net.core.wmem_max': value => '16777216' }
+    sysctl::value { 'net.ipv4.tcp_rmem': value => '4096 87380 16777216' }
+    sysctl::value { 'net.ipv4.tcp_wmem': value => '4096 87380 16777216' }
+    sysctl::value { 'net.core.netdev_max_backlog':  value => '30000' }
+    sysctl::value { 'net.ipv4.tcp_congestion_control': value => 'htcp' }
+    sysctl::value { 'net.ipv4.tcp_mtu_probing': value => '1' }
+    sysctl::value { 'net.ipv4.tcp_timestamps': value => '1' }
+    sysctl::value { 'net.ipv4.tcp_sack': value => '1' }
 
     package { 'socat': ensure => present }
     exec { 'wait-for-haproxy-mysql-backend':
